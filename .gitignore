@@ -1,0 +1,32 @@
+# Google Drive credentials (KEEP SECRET!)
+credentials.json
+token.pickle
+*.pickle
+
+# Local storage
+downloaded_links.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Downloads folder (optional - comment out if you want to track downloads)
+downloads/

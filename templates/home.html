@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram to YouTube Uploader</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        /* Smooth transitions and futuristic styles */
+        .page { display: none; opacity: 0; transition: opacity 0.3s ease-in-out; }
+        .page.active { display: block; opacity: 1; }
+        .spinner { border: 3px solid #e5e7eb; border-top: 3px solid #7c3aed; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .btn { transition: transform 0.2s ease, background-color 0.3s ease; }
+        .btn:hover { transform: scale(1.05); }
+        .process-step { transition: all 0.3s ease; }
+        .gradient-bg { background: linear-gradient(135deg, #6b7280 0%, #1e3a8a 100%); }
+        .shadow-glow { box-shadow: 0 0 15px rgba(124, 58, 237, 0.5); }
+        /* Mobile-first optimizations */
+        body { font-size: 16px; }
+        .container { max-width: 100%; padding: 1rem; }
+        @media (min-width: 640px) { .container { max-width: 640px; margin: auto; } }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center gradient-bg">
+    <div class="container">
+        <!-- HOME PAGE -->
+        <div id="homePage" class="page active">
+            <h1 class="text-3xl font-bold text-center mb-4">🎥 Insta to YouTube</h1>
+            <p class="text-center text-gray-300 mb-6">Upload Instagram Reels to YouTube seamlessly!</p>
+            <div class="bg-gray-800 p-6 rounded-lg shadow-glow mb-6">
+                <h3 class="text-lg font-semibold mb-2">🚀 Quick Start</h3>
+                <p class="text-sm text-gray-400">Paste an Instagram Reel URL and upload to YouTube with auto-credits.</p>
+                <button onclick="showPage('uploadPage')" class="btn w-full mt-4 py-3 bg-purple-600 text-white rounded-lg shadow-glow">Start Uploading</button>
+                <button onclick="showPage('statsPage')" class="btn w-full mt-2 py-3 bg-gray-700 text-white rounded-lg">View History</button>
+            </div>
+        </div>
+
+        <!-- UPLOAD PAGE -->
+        <div id="uploadPage" class="page">
+            <h1 class="text-2xl font-bold text-center mb-4">🎥 Upload Reel</h1>
+            <div class="bg-gray-800 p-6 rounded-lg shadow-glow">
+                <form id="uploadForm">
+                    <div class="mb-4">
+                        <label for="uploadUrl" class="block text-sm font-medium mb-2">Instagram URL</label>
+                        <input type="url" id="uploadUrl" name="url" placeholder="https://www.instagram.com/reel/..." required class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-purple-500">
+                    </div>
+                    <button type="submit" class="btn w-full py-3 bg-purple-600 text-white rounded-lg shadow-glow" id="submitBtn">🚀 Upload</button>
+                </form>
+                <div class="process-container mt-6 hidden" id="processContainer">
+                    <div class="process-step p-4 bg-gray-700 rounded-lg mb-3" id="step1">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl">🔍</span>
+                            <span class="font-medium">Checking Duplicate</span>
+                            <span class="spinner hidden" id="spinner1"></span>
+                        </div>
+                        <p class="text-sm text-gray-400 mt-2" id="step1-content">Checking if already uploaded...</p>
+                    </div>
+                    <div class="process-step p-4 bg-gray-700 rounded-lg mb-3" id="step2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl">📥</span>
+                            <span class="font-medium">Downloading Video</span>
+                            <span class="spinner hidden" id="spinner2"></span>
+                        </div>
+                        <p class="text-sm text-gray-400 mt-2" id="step2-content">Waiting for metadata...</p>
+                    </div>
+                    <div class="process-step p-4 bg-gray-700 rounded-lg" id="step3">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl">📤</span>
+                            <span class="font-medium">Uploading to YouTube</span>
+                            <span class="spinner hidden" id="spinner3"></span>
+                        </div>
+                        <p class="text-sm text-gray-400 mt-2" id="step3-content">Waiting for download...</p>
+                    </div>
+                </div>
+            </div>
+            <button onclick="showPage('homePage')" class="btn w-full mt-4 py-3 bg-gray-700 text-white rounded-lg">← Back</button>
+        </div>
+
+        <!-- STATS PAGE -->
+        <div id="statsPage" class="page">
+            <h1 class="text-2xl font-bold text-center mb-4">📊 Upload History</h1>
+            <div class="bg-gray-800 p-6 rounded-lg shadow-glow">
+                <p class="text-sm mb-4"><strong>Total Uploads:</strong> <span id="statsCount">{{ data.count }}</span></p>
+                <div id="statsTable">
+                    {% if data.links %}
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="bg-gray-700">
+                                    <th class="p-2">#</th>
+                                    <th class="p-2">URL</th>
+                                    <th class="p-2">File</th>
+                                    <th class="p-2">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in data.links %}
+                                <tr class="border-b border-gray-600">
+                                    <td class="p-2">{{ loop.index }}</td>
+                                    <td class="p-2"><a href="{{ item.url }}" target="_blank" class="text-purple-400">{{ item.url | truncate(30) }}</a></td>
+                                    <td class="p-2">{{ item.filename | truncate(20) }}</td>
+                                    <td class="p-2">{{ item.downloaded_at }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-gray-400">No uploads yet. Start uploading!</p>
+                    {% endif %}
+                </div>
+            </div>
+            <button onclick="showPage('homePage')" class="btn w-full mt-4 py-3 bg-gray-700 text-white rounded-lg">← Back</button>
+        </div>
+    </div>
+
+    <script>
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => {
+                p.classList.remove('active');
+                p.style.opacity = '0';
+            });
+            const page = document.getElementById(pageId);
+            page.classList.add('active');
+            setTimeout(() => { page.style.opacity = '1'; }, 10);
+        }
+
+        const uploadForm = document.getElementById('uploadForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const processContainer = document.getElementById('processContainer');
+
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const url = document.getElementById('uploadUrl').value.trim();
+
+            if (!url || !url.includes('instagram.com')) {
+                alert('Please enter a valid Instagram URL');
+                return;
+            }
+
+            uploadForm.classList.add('hidden');
+            processContainer.classList.remove('hidden');
+            submitBtn.disabled = true;
+            resetSteps();
+
+            try {
+                activateStep(1, 'Checking if already uploaded to YouTube...');
+                const formData = new FormData();
+                formData.append('url', url);
+                const response = await fetch('/instagram-to-youtube', { method: 'POST', body: formData });
+                const data = await response.json();
+
+                if (!response.ok || !data.success) throw new Error(data.error || 'Upload failed');
+
+                if (data.duplicate) {
+                    completeStep(1, `⚠️ Already Uploaded!<br>This video is on YouTube.`);
+                    completeStep(2, 'Skipped - duplicate detected');
+                    completeStep(3, `<strong>✅ Found!</strong><br><a href="${data.youtube_url}" target="_blank" class="text-purple-400 underline">🎬 Watch on YouTube</a>`);
+                } else {
+                    completeStep(1, `<strong>@${data.username}</strong><br>${data.description.substring(0, 50)}...`);
+                    activateStep(2, 'Downloading video...');
+                    await sleep(1000);
+                    completeStep(2, `Downloaded: ${data.filename}`);
+                    activateStep(3, 'Uploading to YouTube...');
+                    await sleep(1000);
+                    completeStep(3, `<strong>✅ Success!</strong><br><a href="${data.youtube_url}" target="_blank" class="text-purple-400 underline">🎬 Watch on YouTube</a>`);
+                }
+            } catch (error) {
+                errorStep(getCurrentStep(), error.message);
+            } finally {
+                submitBtn.disabled = false;
+                setTimeout(() => {
+                    uploadForm.classList.remove('hidden');
+                    processContainer.classList.add('hidden');
+                }, 15000);
+            }
+        });
+
+        function resetSteps() {
+            for (let i = 1; i <= 3; i++) {
+                const step = document.getElementById(`step${i}`);
+                step.className = 'process-step p-4 bg-gray-700 rounded-lg mb-3';
+                document.getElementById(`spinner${i}`).classList.add('hidden');
+            }
+        }
+        function activateStep(stepNum, message) {
+            const step = document.getElementById(`step${stepNum}`);
+            const spinner = document.getElementById(`spinner${stepNum}`);
+            const content = document.getElementById(`step${stepNum}-content`);
+            step.className = 'process-step p-4 bg-purple-800 rounded-lg mb-3';
+            spinner.classList.remove('hidden');
+            content.innerHTML = message;
+        }
+        function completeStep(stepNum, message) {
+            const step = document.getElementById(`step${stepNum}`);
+            const spinner = document.getElementById(`spinner${stepNum}`);
+            const content = document.getElementById(`step${stepNum}-content`);
+            step.className = 'process-step p-4 bg-green-800 rounded-lg mb-3';
+            spinner.classList.add('hidden');
+            content.innerHTML = message;
+        }
+        function errorStep(stepNum, message) {
+            const step = document.getElementById(`step${stepNum}`);
+            const spinner = document.getElementById(`spinner${stepNum}`);
+            const content = document.getElementById(`step${stepNum}-content`);
+            step.className = 'process-step p-4 bg-red-800 rounded-lg mb-3';
+            spinner.classList.add('hidden');
+            content.innerHTML = `❌ Error: ${message}`;
+        }
+        function getCurrentStep() {
+            for (let i = 1; i <= 3; i++) {
+                if (document.getElementById(`step${i}`).classList.contains('bg-purple-800')) return i;
+            }
+            return 1;
+        }
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+    </script>
+</body>
+</html>
