@@ -33,8 +33,8 @@ youtube_service = None
 # ------------------- CONFIG -------------------
 UPLOAD_FOLDER = "downloads"
 LINKS_FILE = "downloaded_links.json"
-INSTAGRAM_USERNAME = "hikon_31"  # Instagram login username
-INSTAGRAM_PASSWORD = "kolikoli"  # Instagram login password
+INSTAGRAM_USERNAME = os.environ.get('INSTAGRAM_USERNAME', 'hikon_31')  # Get from env or use default
+INSTAGRAM_PASSWORD = os.environ.get('INSTAGRAM_PASSWORD', 'kolikoli')  # Get from env or use default
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # ------------------- FLASK APP -------------------
