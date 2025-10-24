@@ -328,8 +328,6 @@ def download_video_ytdlp(post_url):
             '--no-warnings',
             '--username', INSTAGRAM_USERNAME,
             '--password', INSTAGRAM_PASSWORD,
-            '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            '--cookies-from-browser', 'chrome',  # Try using browser cookies
             post_url
         ]
         
@@ -359,36 +357,12 @@ def download_video_ytdlp(post_url):
                 
                 return latest_file, True, "Success", gdrive_file_id
         
-        # If download failed, try without authentication
-        print("⚠️ First attempt failed, trying without authentication...")
-        cmd_no_auth = [
-            'yt-dlp',
-            '-f', 'best',
-            '-o', output_template,
-            '--no-playlist',
-            '--quiet',
-            '--no-warnings',
-            '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            post_url
-        ]
-        
-        result2 = subprocess.run(cmd_no_auth, capture_output=True, text=True, timeout=30)
-        
-        if result2.returncode == 0:
-            files = [f for f in os.listdir(UPLOAD_FOLDER) 
-                    if f.endswith(('.mp4', '.jpg', '.png'))]
-            if files:
-                latest_file = max(files, 
-                    key=lambda x: os.path.getctime(os.path.join(UPLOAD_FOLDER, x)))
-                return latest_file, True, "Success", None
-        
-        error_msg = result.stderr or result2.stderr or "Download failed"
-        return None, False, error_msg, None
+        return None, False, result.stderr or "Download failed", None
         
     except subprocess.TimeoutExpired:
-        return None, False, "Download timeout - Instagram may be blocking requests", None
+        return None, False, "Download timeout", None
     except Exception as e:
-        return None, False, f"Error: {str(e)}", None
+        return None, False, str(e), None
 
 # ------------------- ROUTES -------------------
 
