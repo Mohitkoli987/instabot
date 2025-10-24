@@ -671,4 +671,5 @@ if __name__ == "__main__":
     print(f"\n🌐 Starting server on http://0.0.0.0:{port}")
     print("="*70 + "\n")
     
+    # Use host 0.0.0.0 for deployment, debug=False for production
     app.run(host='0.0.0.0', port=port, debug=False)
