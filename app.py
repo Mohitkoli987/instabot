@@ -315,10 +315,11 @@ def scrape_instagram_metadata(post_url):
 # ------------------- VIDEO DOWNLOAD -------------------
 
 def download_video_ytdlp(post_url):
-    """Download Instagram video using yt-dlp and upload to Google Drive"""
+    """Download Instagram video using yt-dlp (server compatible version)"""
     try:
         output_template = os.path.join(UPLOAD_FOLDER, '%(id)s.%(ext)s')
         
+        # Simple command without browser cookies (works on servers)
         cmd = [
             'yt-dlp',
             '-f', 'best',
